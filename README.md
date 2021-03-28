@@ -21,5 +21,5 @@ mvn clean install
 ```
 - a new folder namely `target` will be created after run build command, navigate to that folder and run the application ( replace 56 by your number of rooms )
 ```
-java -jar SilentiumIO-1.0-SNAPSHOT.jar 56
+java -jar digi-1.0-SNAPSHOT.jar 56
 ```
