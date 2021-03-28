@@ -9,6 +9,7 @@ import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Collectors;
 
 public class BookingDB implements Repository {
   private int numberOfRoom = 0;
@@ -31,6 +32,9 @@ public class BookingDB implements Repository {
   public int createBooking(Booking booking) {
     writeLock.lock();
     try {
+      if(booking.getRoom()>numberOfRoom) {
+        return StatusCode.ROOM_NOT_EXISTED;
+      }
       LocalDate bookingDate = booking.getDate();
       Set<Integer> indexes = dateIndex.get(bookingDate);
       if(indexes!=null) {
@@ -59,21 +63,21 @@ public class BookingDB implements Repository {
 
 
   @Override
-  public boolean[] findAvailableRoomBy(LocalDate bookingDate) {
+  public List<Integer> findAvailableRoomBy(LocalDate bookingDate) {
     readLock.lock();
-    boolean[] availableRooms = new boolean[numberOfRoom];
-    Arrays.fill(availableRooms, true);
+    List<Integer> rooms = new ArrayList<>();
     try {
       Set<Integer> indexes = dateIndex.get(bookingDate);
-      if(indexes!=null) {
-        for(Integer index : indexes) {
-          availableRooms[bookings.get(index).getRoom()] = false;
+      Set<Integer> bookedRoom = indexes.stream().map(bookings::get).map(Booking::getRoom).collect(Collectors.toSet());
+      for (int i = 0; i <= numberOfRoom ; i++) {
+        if(!bookedRoom.contains(i)) {
+          rooms.add(i);
         }
       }
     } finally {
       readLock.unlock();
     }
-    return availableRooms;
+    return rooms;
   }
 
   @Override
